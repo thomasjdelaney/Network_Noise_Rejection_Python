@@ -77,5 +77,19 @@ def getExpectedNetworkFromData(pairwise_measure_int):
     return np.outer(np.sum(pairwise_measure_int, axis=0), np.sum(pairwise_measure_int, axis=1)) / np.sum(pairwise_measure_int).astype(float)
 
 def getExpectedNetworkFromSamples(null_net_samples):
+    """
+    Get the expected null network from samples from the null network.
+    Arguments:  null_net_samples, 3-d numpy.ndarray (num samples, num nodes, num nodes)
+    Returns:    numpy.ndarray (num nodes, num nodes)
+    """
     num_samples = null_net_samples.shape[0]
     return null_net_samples.sum(axis=0)/num_samples
+
+def getPoissonRates(expected_weights, strength_distn, weight_to_place, has_loops=False):
+    poisson_rates = np.zeros(expected_weights.shape)
+    expected_num_links = np.triu(expected_weights, k=int(not(has_loops)))
+    pair_rows, pair_cols = np.nonzero(expected_num_links)
+    prob_is_link = strength_distn[pair_rows] * strength_distn[pair_cols]
+    prob_is_link = prob_is_link / prob_is_link.sum()
+    poisson_rates[pair_rows, pair_cols] = weight_to_place * prob_is_link # the rate calculation and indexing all work perfectly, checked
+    return poisson_rates
