@@ -107,3 +107,41 @@ def checkConvergenceConsensus(consensus_matrix):
             consensus_clustering_iterations += 1
     sort_inds = np.argsort(clustered_nodes)
     return is_converged, consensus_clustering[sort_inds], threshold
+
+def nullModelConsensusSweep(cluster_sizes, num_allowed_clusterings, num_nodes):
+    """
+    Constructs the expected null model for a consensus matrix of random clusterings from a k-means sweep.
+    Arguments:  cluster_sizes, numpy.ndarray (num clusters), number of clusters tested in each k-means run
+                num_allowed_clusterings, numpy.ndarray (num clusters), the number of clusterings taken
+                num_nodes, int, the number of nodes
+    Returns:    exp_proportions, numpy.ndarray (num nodes, num nodes), matrix of expected proportions
+                proportion_var, numpy.ndarray (num nodes, num nodes), matrix of variances in those expected proportions
+    """
+    assert cluster_sizes.size == num_allowed_clusterings.size, dt.datetime.now().isoformat() + ' ERROR: ' + 'number of cluster sizes != number of allowed clusterings'
+    num_draws = np.zeros(cluster_sizes.shape)
+    draw_var = np.zeros(cluster_sizes.shape)
+    for i, (cluster_size, num_allowed) in enumerate(zip(cluster_sizes, num_allowed_clusterings)):
+        uniform_same_cluster_prob = 1/float(cluster_size)
+        num_draws[i] = num_allowed * uniform_same_cluster_prob
+        draw_var[i] = uniform_same_cluster_prob * num_allowed * (1 - uniform_same_cluster_prob)
+    exp_proportions = np.zeros([num_nodes, num_nodes]) + num_draws.sum()/num_allowed_clusterings.sum()
+    proportion_var = np.zeros([num_nodes, num_nodes]) + draw_var.sum()/num_allowed_clusterings.sum()
+    np.fill_diagonal(exp_proportions, 0.0)
+    np.fill_diagonal(proportion_var, 0.0)
+    return exp_proportions, proportion_var
+
+def embedConsensusNull(consensus_matrix, consensus_type, cluster_sizes, num_allowed_clusterings):
+    num_nodes = consensus_matrix.shape[0]
+    if consensus_type == 'sweep':
+        exp_proportions, proportion_var = nullModelConsensusSweep(cluster_sizes, num_allowed_clusterings, num_nodes)
+    elif consensus_type == 'expect':
+        return 0 # implement this
+    else:
+        sys.exit(dt.datetime.now().isoformat() + ' ERROR: ' + 'Unknown consensus type!')
+    cons_mod_matrix = consensus_matrix - exp_proportions
+    cons_eig_vals, cons_eig_vecs = np.linalg.eigh(cons_mod_matrix)
+    low_d_consensus = cons_eig_vecs[:,cons_eig_vals > 0]
+    est_num_groups = (cons_eig_vals > 0).sum() + 1
+    return low_d_consensus, cons_mod_matrix, est_num_groups, cons_eig_vals
+
+
