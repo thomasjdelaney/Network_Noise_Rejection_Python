@@ -66,4 +66,5 @@ def plotClusterMap(measure_matrix, clustering, is_sort=True, node_labels=np.arra
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.05)
     plt.colorbar(im, cax=cax)
+    plt.tight_layout()
     return None
