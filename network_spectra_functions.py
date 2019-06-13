@@ -223,6 +223,35 @@ def getFullPoissonWeightedConfModel(num_samples, expected_net, strength_distn, t
         optional_returns['eig_vecs'] = samples_eig_vecs
     return samples_eig_vals, optional_returns
 
+def getPoissonWeightedConfModel(pairwise_measure_matrix, num_samples, is_sparse=False, has_loops=False, return_type='expected', return_eig_vecs=False):
+    """
+    For getting the eigenspectrum of the weighted configuration model. The eigenvalues of each sample are automatically returned as the first returned value. The second returned value can contain the expected network without modules, or the expected network sampled from the model, and the samples themselves, and even the eigenvectors of the samples.
+    Arguments:  pairwise_measure_matrix, numpy.ndarray (num nodes, num nodes), the weighted adjacency matrix
+                num_samples, int, the number of samples to take
+                is_sparse, boolean, use the sparse model or the full model
+                has_loops, boolean, flag for allowed self-connections (non-zero entries on the main diagonal)
+                return_type, string, choices = ['expected', 'both', 'all'], 'expected' makes the optional_returns dictionary contain the expected network calculated from the weighted configuration model,
+                                                                            'both' makes the optional_returns dictionary contain the expected network calculated from the weighted configuration model, and all the samples from the null model,
+                                                                            'all' makes the optional_returns dictionary contain the expected network without modules, and all the samples from the null model (bear in mind that the WCM expected network can be calculated from the samples using getExpectedNetworkFromSamples)
+                return_eig_vecs, boolean, if true the optional_returns dictionary will contain the eigenvectors of each sample
+    Returns:    samples_eig_vals, numpy.ndarray (num_samples, num_nodes), the eigenspectrum of each sample
+                optional_returns,   'expected_wcm', numpy.ndarray (num_nodes, num_nodes), the expected network of the weighted configuration model
+                                    'expected_net', numpy.ndarray (num_nodes, num_nodes), the expected network without modules
+                                    'net_samples', numpy.ndarray (num_samples, num_nodes, num_nodes), all the sampled networks
+                                    'eig_vecs', numpy.ndarray (num_samples, num_nodes, num_nodes), the eigenvectors of each sample network
+    """
+    pairwise_measure_matrix = checkDirected(pairwise_measure_matrix)
+    assert (pairwise_measure_matrix >= 0).all(),dt.datetime.now().isoformat() + ' ERROR: ' + 'Weights must be non-negative...'
+    strength_distn = pairwise_measure_matrix.sum(axis=0) # sA
+    pairwise_measure_int, scale_coef = convertPairwiseMeasureMatrix(pairwise_measure_matrix, scale_coef = getUnifyingScaleCoef(pairwise_measure_matrix))
+    expected_net = getExpectedNetworkFromData(pairwise_measure_int) # P, matches
+    total_weights = (pairwise_measure_int.sum()/2).astype(int) # nLinks
+    if is_sparse:
+        samples_eig_vals, optional_returns = getSparsePoissonWeightedConfModel(pairwise_measure_matrix, pairwise_measure_int, num_samples, expected_net, strength_distn, total_weights, scale_coef, has_loops, return_type, return_eig_vecs)
+    else:
+        samples_eig_vals, optional_returns = getFullPoissonWeightedConfModel(num_samples, expected_net, strength_distn, total_weights, scale_coef, has_loops, return_type, return_eig_vecs)
+    return samples_eig_vals, optional_returns
+
 def getConfidenceIntervalFromStdErr(st_dev, num_samples, interval):
     """
     For getting confidence intervals on the mean values of the null model.
