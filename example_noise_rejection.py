@@ -13,6 +13,7 @@ from scipy.io import loadmat
 ### NB assuming that this script will be run from the project root directory
 proj_dir = os.environ['PWD']
 mat_dir = os.path.join(proj_dir, 'mat')
+npy_dir = os.path.join(proj_dir, 'npy')
 data_file_name = 'lesmis.mat'
 data_file = os.path.join(mat_dir, data_file_name)
 
@@ -49,7 +50,16 @@ signal_final_inds = signal_comp_inds[keep_inds]
 signal_leaf_inds = signal_comp_inds[leaf_inds]
 final_weighted_adjacency_matrix = biggest_signal_comp[keep_inds][:, keep_inds]
 
-# plotting modularity eigenvalues against null eigenspectrum
+print(dt.datetime.now().isoformat() + ' INFO: ' + 'Saving data...')
+np.save(os.path.join(npy_dir, 'lesmis_reject_dict.npy'), reject_dict)
+np.save(os.path.join(npy_dir, 'lesmis_weighted_adjacency_matrix.npy'), weighted_adjacency_matrix)
+np.save(os.path.join(npy_dir, 'lesmis_exceeding_space_dims.npy'), exceeding_space_dims)
+np.save(os.path.join(npy_dir, 'lesmis_signal_final_inds.npy'), signal_final_inds)
+np.save(os.path.join(npy_dir, 'lesmis_expected_wcm.npy'), expected_wcm)
+np.save(os.path.join(npy_dir, 'lesmis_final_weighted_adjacency_matrix.npy'), final_weighted_adjacency_matrix)
+np.save(os.path.join(npy_dir, 'lesmis_nodelabels.npy'), data['Problem']['aux'][0][0]['nodename'][0][0])
+
+print(dt.datetime.now().isoformat() + ' INFO: ' + 'Plotting modularity matrix eigenspectrum against null eigenspectrum...')
 plt.axvline(x=mean_mins_eig, ymin=0, ymax=1, color='black', label='lower bound')
 plt.axvline(x=mean_maxs_eig, ymin=0, ymax=1, color='black', label='upper bound')
 plt.axvline(x=0, ymin=0, ymax=1, color='black', linestyle='--')
@@ -59,3 +69,4 @@ plt.xlabel('Eigenvalues')
 plt.yticks([])
 plt.legend()
 plt.tight_layout()
+plt.show(block=False)

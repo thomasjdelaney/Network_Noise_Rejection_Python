@@ -3,6 +3,7 @@ import numpy as np
 import datetime as dt
 from sklearn.cluster import KMeans
 from skimage.filters import threshold_otsu
+from itertools import combinations
 
 def getBiggestComponent(pairwise_measure_matrix):
     """
