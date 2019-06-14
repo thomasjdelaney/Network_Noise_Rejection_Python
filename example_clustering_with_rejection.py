@@ -9,19 +9,23 @@ import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
 
+parser = argparse.ArgumentParser(description='For showing off the noise clustering part of Network Noise Rejection')
+parser.add_argument('-f', '--data_files_prefix', help='The prefix of the .npy files containing the required data.', type=str, default='lesmis')
+args = parser.parse_args()
+
 ### NB assuming that this script will be run from the project root directory
 proj_dir = os.environ['PWD']
 mat_dir = os.path.join(proj_dir, 'mat')
 npy_dir = os.path.join(proj_dir, 'npy')
 
 print(dt.datetime.now().isoformat() + ' INFO: ' + 'Loading data...')
-reject_dict = np.load(os.path.join(npy_dir, 'lesmis_reject_dict.npy'), encoding = 'latin1')
-weighted_adjacency_matrix = np.load(os.path.join(npy_dir, 'lesmis_weighted_adjacency_matrix.npy'), encoding = 'latin1')
-exceeding_space_dims = np.load(os.path.join(npy_dir, 'lesmis_exceeding_space_dims.npy'), encoding = 'latin1')
-signal_final_inds = np.load(os.path.join(npy_dir, 'lesmis_signal_final_inds.npy'), encoding = 'latin1')
-expected_wcm = np.load(os.path.join(npy_dir, 'lesmis_expected_wcm.npy'), encoding = 'latin1')
-final_weighted_adjacency_matrix = np.load(os.path.join(npy_dir, 'lesmis_final_weighted_adjacency_matrix.npy'), encoding = 'latin1')
-node_labels = np.load(os.path.join(npy_dir, 'lesmis_nodelabels.npy'), encoding = 'latin1')
+reject_dict = np.load(os.path.join(npy_dir, args.data_files_prefix + '_reject_dict.npy'), encoding = 'latin1')
+weighted_adjacency_matrix = np.load(os.path.join(npy_dir, args.data_files_prefix + '_weighted_adjacency_matrix.npy'), encoding = 'latin1')
+exceeding_space_dims = np.load(os.path.join(npy_dir, args.data_files_prefix + '_exceeding_space_dims.npy'), encoding = 'latin1')
+signal_final_inds = np.load(os.path.join(npy_dir, args.data_files_prefix + '_signal_final_inds.npy'), encoding = 'latin1')
+expected_wcm = np.load(os.path.join(npy_dir, args.data_files_prefix + '_expected_wcm.npy'), encoding = 'latin1')
+final_weighted_adjacency_matrix = np.load(os.path.join(npy_dir, args.data_files_prefix + '_final_weighted_adjacency_matrix.npy'), encoding = 'latin1')
+node_labels = np.load(os.path.join(npy_dir, args.data_files_prefix + '_nodelabels.npy'), encoding = 'latin1')
 
 signal_expected_wcm = expected_wcm[signal_final_inds][:, signal_final_inds]
 max_mod_cluster, max_modularity, consensus_clustering, consensus_modularity, consensus_iterations = nnr.consensusCommunityDetect(final_weighted_adjacency_matrix, signal_expected_wcm, exceeding_space_dims+1, exceeding_space_dims+1)

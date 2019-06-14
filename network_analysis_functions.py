@@ -25,31 +25,32 @@ def getBiggestComponent(pairwise_measure_matrix):
 
 def kMeansSweep(e_vectors, min_groups, max_groups, reps, dims):
     """
-    Perform kmeans clustering on the given eigen vectors sweeping from min_groups clusters to max_groups clusters, repeating reps number of times.
+    Perform k-means clustering on the given eigen vectors sweeping from min_groups clusters to max_groups clusters, repeating reps number of times.
     Arguments:  e_vectors, the eigenvectors to cluster
                 min_groups, the minimum number of clusters to be used
                 max_groups, the maximum number of clusters to be used
                 reps, the number of clusterings to take for each integer value between min_groups and max_groups
                 dims, string, options = ['all', 'scale'] either use all the e_vectors or scale accourding to the number of clusters we're trying to find.
+    Returns:    clusterings, numpy.ndarray (num nodes, (1+max_groups-min_groups)*reps), the clusterings resulting from running k-means clustering repeatedly
     """
     assert min_groups >= 2, dt.datetime.now().isoformat() + ' ERROR: ' + 'Minimum number of groups must be at least 2!'
     assert min_groups <= max_groups, dt.datetime.now().isoformat() + ' ERROR: ' + 'Minimum number of groups greater than maximum number of groups!'
     num_nodes, num_e_vectors = e_vectors.shape
     if (dims == 'scale') & (num_e_vectors < max_groups - 1):
         sys.exit(dt.datetime.now().isoformat() + ' ERROR: ' + 'Not enough embedding dimensions to scale upper bound!')
-    num_possible_groups = 1 + max_groups - min_groups
-    clusterings = np.zeros([num_nodes, reps], dtype=int)
-    for num_groups in range(min_groups, max_groups + 1):
+    num_diff_num_possible_groups = 1 + max_groups - min_groups # number of different number of possible groups
+    clusterings = np.zeros([num_nodes, num_diff_num_possible_groups * reps], dtype=int)
+    for i, num_groups in enumerate(range(min_groups, max_groups + 1)):
         if dims == 'all':
             this_vector = e_vectors
         elif dims == 'scale':
             this_vector = e_vectors[:, num_groups-1]
         else:
             sys.exit(dt.datetime.now().isoformat() + ' ERROR: ' + 'Unknown dims!')
-        for i in range(reps):
+        for j in range(reps):
             kmeans_estimator = KMeans(init='k-means++', n_clusters=num_groups, n_init=10)
             kmeans_estimator.fit(this_vector)
-            clusterings[:,i] = kmeans_estimator.labels_ # each column is a clustering
+            clusterings[:,(reps * i) + j] = kmeans_estimator.labels_ # each column is a clustering
     return clusterings
 
 def getClusteringModularity(clustering, modularity_matrix, m=1):
@@ -173,6 +174,10 @@ def consensusCommunityDetect(signal_measure_matrix, signal_expected_wcm, min_gro
                 consensus_clustering, the clustering found by consensus community detection
                 consensus_modularity, the modularity of the consensus_clustering
                 consensus_iterations, the number of iterations used to reach the consensus clustering
+    References: (1) Newman, M. E. J. (2006) "Finding community structure in networks using the eigenvectors of matrices". Phys Rev E, 74, 036104.
+                (2) Reichardt & Bornhaldt (2006) "Statistical mechanics of community detection". Phys Rev E. 74, 016110
+                (3) Lancichinetti, A. & Fortunato, S. (2012) Consensus clustering in complex networks. Scientific Reports, 2, 336
+                (4) Arthur, D. & Vassilvitskii, S. (2007) k-means++: the advantages of careful seeding. SODA '07: Proceedings of the eighteenth annual ACM-SIAM symposium on Discrete algorithms, Society for Industrial and Applied Mathematics, 1027-1035
     """
     if (np.diag(signal_measure_matrix) != 0).any():
         print(dt.datetime.now().isoformat() + ' WARN: ' + 'Measure matrix has self loops...')
@@ -194,7 +199,7 @@ def consensusCommunityDetect(signal_measure_matrix, signal_expected_wcm, min_gro
     max_mod_cluster = kmeans_clusterings[:,clustering_modularities.argmax()]
     while not(is_converged):
         allowed_clusterings = kmeans_clusterings[:,clustering_modularities > 0]
-        consensus_matrix = bct.agreement(allowed_clusterings) / float(kmeans_reps)
+        consensus_matrix = bct.agreement(allowed_clusterings) / float(kmeans_clusterings.shape[1])
         is_converged, consensus_clustering, threshold = checkConvergenceConsensus(consensus_matrix) # doesn't match. Some investigation required.
         if is_converged:
             consensus_modularity = getClusteringModularity(consensus_clustering, modularity_matrix, total_unique_weight)

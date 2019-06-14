@@ -95,7 +95,7 @@ def getPoissonRates(expected_weights, strength_distn, weight_to_place, has_loops
     expected_num_links = np.triu(expected_weights, k=int(not(has_loops)))
     pair_rows, pair_cols = np.nonzero(expected_num_links)
     prob_is_link = strength_distn[pair_rows] * strength_distn[pair_cols]
-    prob_is_link = prob_is_link / prob_is_link.sum()
+    prob_is_link = prob_is_link / prob_is_link.sum().astype(float)
     poisson_rates[pair_rows, pair_cols] = weight_to_place * prob_is_link # the rate calculation and indexing all work perfectly, checked
     return poisson_rates
 
