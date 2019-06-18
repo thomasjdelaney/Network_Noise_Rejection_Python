@@ -2,7 +2,6 @@ import bct # brain connectivity toolbox
 import numpy as np
 import datetime as dt
 from sklearn.cluster import KMeans
-from skimage.filters import threshold_otsu
 from itertools import combinations
 
 def getBiggestComponent(pairwise_measure_matrix):
@@ -70,6 +69,35 @@ def getClusteringModularity(clustering, modularity_matrix, m=1):
     modularity = np.matrix.trace(np.dot(np.dot(membership_matrix.T, modularity_matrix), membership_matrix)) / (2*m)
     return modularity
 
+def otsusMethod(bin_counts):
+    """
+    implementing Otsu's method for finding a threshold to divide a histogram into two classes with maximal inter-class variance.
+    Arguments:  bin_counts, counts of a histogram
+    Returns:    thresh, int, the threshold bin, bin_counts[:thresh] are in class 0, bin_counts[thresh+1:end] are in class 2.
+                eta_max, turning point
+    References: Otsu, N (1979) A Threshold Selection Method from Gray-Level Histograms, IEEE Trans Sys Man Mach, 9, 62-66
+    """
+    if bin_counts.sum() != 1:
+        bin_counts = bin_counts / bin_counts.sum().astype(float)
+    global_mean = (np.arange(1, bin_counts.size+1) * bin_counts).sum()
+    global_var = (np.power((np.arange(1, bin_counts.size+1) - global_mean),2) * bin_counts).sum()
+    maximum = 0
+    thresh = 1
+    cum_prob = 0 # cumulative probability
+    cum_mean = 0 # cumulative mean
+    eta_max = 0
+    inter_var = 0
+    for i in range(1, bin_counts.size):
+        cum_prob = cum_prob + bin_counts[i-1]
+        cum_mean = cum_mean + i*bin_counts[i-1]
+        if cum_prob != 1:
+            inter_var = np.power((global_mean * cum_prob - cum_mean),2) / (cum_prob * (1-cum_prob)) # inter-class variance
+        if inter_var > maximum:
+            thresh = i
+            maximum = inter_var
+            eta_max = inter_var / global_var
+    return thresh, eta_max
+
 def checkConvergenceConsensus(consensus_matrix):
     """
     Checks if the consensus matrix contains a single clustering of the nodes.
@@ -87,7 +115,7 @@ def checkConvergenceConsensus(consensus_matrix):
         threshold = -np.inf
     else:
         bin_counts, edges = np.histogram(consensuses, bins = np.arange(consensuses.min(), consensuses.max(), bin_width))
-        threshold_bin = threshold_otsu(bin_counts)
+        threshold_bin, eta_max = otsusMethod(bin_counts)
         threshold = edges[threshold_bin]
     high_consensus = consensus_matrix.copy()
     high_consensus[consensus_matrix < threshold] = 0
