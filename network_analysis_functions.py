@@ -239,8 +239,8 @@ def consensusCommunityDetect(signal_measure_matrix, signal_expected_wcm, min_gro
                 return max_mod_cluster, max_modularity, consensus_clustering, consensus_modularity, consensus_iterations
             else:
                 if (min_groups == max_groups) & (not(is_explore)):
-                    num_allowed_clusterings = np.array([allowed_clusterings.shape[1]])
-                    low_d_consensus, cons_mod_matrix, est_num_groups, cons_eig_vals = embedConsensusNull(consensus_matrix, 'sweep', np.array(min_groups, max_groups+1), num_allowed_clusterings)
+                    num_allowed_clusterings = (clustering_modularities>0).reshape([kmeans_reps, 1+ max_groups - min_groups]).sum(axis=0)
+                    low_d_consensus, cons_mod_matrix, est_num_groups, cons_eig_vals = embedConsensusNull(consensus_matrix, 'sweep', np.arange(min_groups, max_groups+1), num_allowed_clusterings)
                     if est_num_groups >= max_groups:
                         kmeans_clusterings = kMeansSweep(low_d_consensus[:,1-max_groups:], min_groups, max_groups, kmeans_reps, dims)
                     elif (low_d_consensus == 0).all():

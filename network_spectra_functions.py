@@ -57,7 +57,7 @@ def recoverPairwiseMeasureMatrix(pairwise_measure_int, scale_coef):
     """
     Convert the integer version of the weighted adjacency matrix back to its origin scale.
     Arguments:  pairwise_measure_int, numpy.ndarray (int)
-                scale_coef, int, the scaling coefficient to use.
+                scale_coef, float, the scaling coefficient to use.
     Returns:    numpy.ndarray(float), the descaled weighted adjacency matrix
     """
     if scale_coef == 1:
@@ -205,7 +205,7 @@ def getFullPoissonWeightedConfModel(num_samples, expected_net, strength_distn, t
     net_samples = np.zeros([num_samples, num_nodes, num_nodes])
     for i in range(num_samples):
         net_samples[i] = sampleNullNetworkFullPoisson(poisson_rates, scale_coef)
-    expected = getExpectedNetworkFromSamples(net_samples) if return_type == ['expected', 'both'] else expected_net
+    expected = getExpectedNetworkFromSamples(net_samples) if return_type in ['expected', 'both'] else expected_net
     samples_eig_vals = np.zeros([num_samples, num_nodes])
     samples_eig_vecs = np.zeros([num_samples, num_nodes, num_nodes])
     for i in range(num_samples):
