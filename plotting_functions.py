@@ -68,3 +68,26 @@ def plotClusterMap(measure_matrix, clustering, is_sort=True, node_labels=np.arra
     plt.colorbar(im, cax=cax)
     plt.tight_layout()
     return None
+
+def plotModEigValsVsNullEig(network_modularity_matrix, mean_mins_eig, mean_maxs_eig):
+    mod_eig_vals = np.linalg.eigvalsh(network_modularity_matrix)
+    plt.axvline(x=mean_mins_eig, ymin=0, ymax=1, color='black', label='lower bound')
+    plt.axvline(x=mean_maxs_eig, ymin=0, ymax=1, color='black', label='upper bound')
+    plt.axvline(x=0, ymin=0, ymax=1, color='black', linestyle='--')
+    plt.scatter(mod_eig_vals, 0.5*np.ones(network_modularity_matrix.shape[0]), color='blue', marker='.', label='modularity matrix eigenvalues')
+    plt.xlim([-10*np.ceil(mod_eig_vals.max()/10), 10*np.ceil(mod_eig_vals.max()/10)])
+    plt.xlabel('Eigenvalues', fontsize='large')
+    plt.yticks([])
+    plt.legend(fontsize='large')
+    plt.tight_layout()
+
+def plotModEigValsVsNullEigHist(network_modularity_matrix, samples_eig_vals):
+    mod_eig_vals = np.linalg.eigvalsh(network_modularity_matrix)
+    plt.hist(samples_eig_vals.flatten(), bins=50, color='black', label='Null Model Samples Eigenvalue Distribution', alpha=0.4)
+    y_max = plt.ylim()[1]/50.0
+    plt.vlines(x=mod_eig_vals, ymin=0, ymax=y_max, color='blue', label='Modularity Matrix Eigenspectrum', alpha=0.4)
+    plt.xlim([-10*np.ceil(mod_eig_vals.max()/10), 10*np.ceil(mod_eig_vals.max()/10)])
+    plt.xlabel('Eigenvalues', fontsize='large')
+    plt.ylabel('Num Eigenvalues', fontsize='large')
+    plt.legend(fontsize='large')
+    plt.tight_layout()
