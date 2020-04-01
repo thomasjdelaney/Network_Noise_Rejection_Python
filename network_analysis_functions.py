@@ -202,6 +202,7 @@ def consensusCommunityDetect(signal_measure_matrix, signal_expected_wcm, min_gro
                 consensus_clustering, the clustering found by consensus community detection
                 consensus_modularity, the modularity of the consensus_clustering
                 consensus_iterations, the number of iterations used to reach the consensus clustering
+                is_converged, flag to indicate that the consensus clustering algorithm converged
     References: (1) Newman, M. E. J. (2006) "Finding community structure in networks using the eigenvectors of matrices". Phys Rev E, 74, 036104.
                 (2) Reichardt & Bornhaldt (2006) "Statistical mechanics of community detection". Phys Rev E. 74, 016110
                 (3) Lancichinetti, A. & Fortunato, S. (2012) Consensus clustering in complex networks. Scientific Reports, 2, 336
@@ -228,7 +229,7 @@ def consensusCommunityDetect(signal_measure_matrix, signal_expected_wcm, min_gro
         consensus_modularity = 0
         consensus_iterations = 0
         print(dt.datetime.now().isoformat() + ' WARN: ' + 'No consensus clustering found...')
-        return max_mod_cluster, max_modularity, consensus_clustering, consensus_modularity, consensus_iterations
+        return max_mod_cluster, max_modularity, consensus_clustering, consensus_modularity, consensus_iterations, is_converged
     max_modularity = clustering_modularities.max()
     max_mod_cluster = kmeans_clusterings[:,clustering_modularities.argmax()]
     while not(is_converged):
@@ -265,4 +266,4 @@ def consensusCommunityDetect(signal_measure_matrix, signal_expected_wcm, min_gro
                     return max_mod_cluster, max_modularity, consensus_clustering, consensus_modularity, consensus_iterations
                 else:
                     clustering_modularities = np.array([getClusteringModularity(clustering, modularity_matrix, total_unique_weight) for clustering in kmeans_clusterings.T])
-    return max_mod_cluster, max_modularity, consensus_clustering, consensus_modularity, consensus_iterations
+    return max_mod_cluster, max_modularity, consensus_clustering, consensus_modularity, consensus_iterations, is_converged
