@@ -232,7 +232,7 @@ def consensusCommunityDetect(signal_measure_matrix, signal_expected_wcm, min_gro
     max_mod_cluster = kmeans_clusterings[:,clustering_modularities.argmax()]
     while not(is_converged):
         allowed_clusterings = kmeans_clusterings[:,clustering_modularities > 0]
-        consensus_matrix = bct.agreement(allowed_clusterings) / float(kmeans_clusterings.shape[1])
+        consensus_matrix = bct.agreement(allowed_clusterings, buffsz=150) / float(kmeans_clusterings.shape[1])
         is_converged, consensus_clustering, threshold = checkConvergenceConsensus(consensus_matrix) # doesn't match. Some investigation required.
         if is_converged:
             consensus_modularity = getClusteringModularity(consensus_clustering, modularity_matrix, total_unique_weight)
