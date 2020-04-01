@@ -222,9 +222,9 @@ def consensusCommunityDetect(signal_measure_matrix, signal_expected_wcm, min_gro
     kmeans_clusterings = kMeansSweep(e_vectors, min_groups, max_groups, kmeans_reps, dims) # C, can't get the clusterings to match
     clustering_modularities = np.array([getClusteringModularity(clustering, modularity_matrix, total_unique_weight) for clustering in kmeans_clusterings.T]) # Q
     if (kmeans_clusterings == 0).all() | (clustering_modularities <= 0).all():
-        max_mod_cluster = np.zeros(num_nodes)
+        max_mod_cluster = np.zeros(num_nodes, dtype=int)
         max_modularity = 0
-        consensus_clustering = np.zeros(num_nodes)
+        consensus_clustering = np.zeros(num_nodes, dtype=int)
         consensus_modularity = 0
         consensus_iterations = 0
         return max_mod_cluster, max_modularity, consensus_clustering, consensus_modularity, consensus_iterations
